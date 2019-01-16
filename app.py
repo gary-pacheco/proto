@@ -1,11 +1,13 @@
 from __future__ import absolute_import, division, print_function
-import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 import flask
 from flask import Flask, render_template, request
 import pandas as pd
-from tensorflow.keras import backend as K
+import time
+import tensorflow as tf
+from keras.utils.training_utils import multi_gpu_model
+
 
 print(tf.__version__)
 print(flask.__version__)
@@ -14,7 +16,7 @@ print(pd.__version__)
 
 app = Flask(__name__)
 boston = keras.datasets.boston_housing
-model = {}
+tf_gpus = 0
 
 
 def load_and_train_model():
@@ -29,15 +31,17 @@ def load_and_train_model():
     print("Training set: {}".format(train_data.shape))  # 404 examples, 13 features
     print("Testing set:  {}".format(test_data.shape))  # 102 examples, 13 features
 
-    model = build_model(train_data)
+    model = build_model(train_data, tf_gpus)
     model.summary()
 
     EPOCHS = 500
 
     # Store training stats
+    start = time.time()
     history = model.fit(train_data, train_labels, epochs=EPOCHS,
                         validation_split=0.2, verbose=0,
                         callbacks=[PrintDot()])
+    print('\nElapsed time: {}s\n'.format(time.time() - start))
 
     test_model(test_data, test_labels, model)
     return model
@@ -50,13 +54,21 @@ class PrintDot(keras.callbacks.Callback):
     print('.', end='')
 
 
-def build_model(train_data):
+def build_model(train_data, gpus):
     print(train_data.shape[1])
     model = keras.Sequential([
         keras.layers.Dense(64, activation=tf.nn.relu, input_shape=(train_data.shape[1],)),
         keras.layers.Dense(64, activation=tf.nn.relu),
         keras.layers.Dense(1)
     ])
+
+    with tf.device("/cpu:0"):
+        model.build(train_data.shape)
+
+    # make the model parallel
+    if gpus > 1:
+        model = multi_gpu_model(model, gpus=gpus)
+
     optimizer = tf.train.RMSPropOptimizer(0.001)
     model.compile(loss='mse',
                   optimizer=optimizer,
@@ -68,10 +80,9 @@ def test_model(test_data, test_labels, model):
     print('Testing model')
     [loss, mae] = model.evaluate(test_data, test_labels, verbose=0)
     print("Testing set Mean Abs Error: ${:7.2f}".format(mae * 1000))
-    print("Loss: {}", loss)
+    print("Loss: {}".format(loss))
     test_predictions = model.predict(test_data[0:1]).flatten()
     print(test_predictions)
-
 
 
 # REST API
