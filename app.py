@@ -116,11 +116,14 @@ def predict():
     return flask.jsonify(resp_data)
 
 
-@app.route("/test", methods=["GET"])
+@app.route("/healthcheck", methods=["GET"])
 def test_api():
 
-    print('This is a test.') # DEBUG
-    resp_data = {'status': 'success'}
+    print('Health check - Start') # DEBUG
+    np_params = np.asarray([[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+    price_est = model.predict(np_params)
+    print('Health check - Estimate:', price_est)
+    resp_data = {'status': 'OK'}
     return flask.jsonify(resp_data)
 
 
