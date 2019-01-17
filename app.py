@@ -7,6 +7,7 @@ import pandas as pd
 import time
 import tensorflow as tf
 from keras.utils.training_utils import multi_gpu_model
+import socket
 
 
 print(tf.__version__)
@@ -123,7 +124,8 @@ def test_api():
     np_params = np.asarray([[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
     price_est = model.predict(np_params)
     print('Health check - Estimate:', price_est)
-    resp_data = {'status': 'OK'}
+    resp_data = {'status': 'OK',
+                 'hostname': socket.gethostname()}
     return flask.jsonify(resp_data)
 
 
