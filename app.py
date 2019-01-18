@@ -125,7 +125,8 @@ def test_api():
     price_est = model.predict(np_params)
     print('Health check - Estimate:', price_est)
     resp_data = {'status': 'OK',
-                 'hostname': socket.gethostname()}
+                 'hostname': socket.gethostname(),
+                 'timestamp': time.time()}
     return flask.jsonify(resp_data)
 
 
