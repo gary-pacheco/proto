@@ -1,0 +1,25 @@
+FROM alpine:latest
+
+# Install OS packages
+RUN apk update --no-cache
+RUN apk add --no-cache --update-cache --update python3-dev musl-dev linux-headers g++ build-base wget freetype-dev libpng-dev openblas-dev gcc gfortran
+RUN apk add --no-cache --allow-untrusted --repository http://dl-3.alpinelinux.org/alpine/edge/testing hdf5 hdf5-dev
+RUN python3 -m ensurepip
+RUN python3 -m pip install --upgrade pip
+
+# Create a director for the application
+RUN mkdir /app
+WORKDIR /app
+
+# Install Python packages
+COPY ./requirements.txt /app/requirements.txt
+RUN pip3 --no-cache-dir install -r requirements.txt
+
+# Copy source code
+COPY ./ /app
+
+# Run application
+CMD ["python3", "/app/app.py"]
+
+EXPOSE 80 80
+

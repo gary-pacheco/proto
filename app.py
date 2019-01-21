@@ -40,7 +40,7 @@ def load_and_train_model():
     # Store training stats
     start = time.time()
     history = model.fit(train_data, train_labels, epochs=EPOCHS,
-                        validation_split=0.2, verbose=0,
+                        validation_split=0.2, verbose=0, batch_size=200,
                         callbacks=[PrintDot()])
     print('\nElapsed time: {}s\n'.format(time.time() - start))
 

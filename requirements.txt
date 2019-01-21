@@ -1,6 +1,5 @@
+numpy
+pandas
 Flask
 tensorflow
-numpy
-matplotlib
-pandas
 Keras
