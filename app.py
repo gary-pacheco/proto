@@ -15,6 +15,7 @@ print(flask.__version__)
 print(np.__version__)
 print(pd.__version__)
 
+version = '0.1.0'
 app = Flask(__name__)
 boston = keras.datasets.boston_housing
 tf_gpus = 0
@@ -126,7 +127,8 @@ def test_api():
     print('Health check - Estimate:', price_est)
     resp_data = {'status': 'OK',
                  'hostname': socket.gethostname(),
-                 'timestamp': time.time()}
+                 'timestamp': time.time(),
+                 'version': version}
     return flask.jsonify(resp_data)
 
 
