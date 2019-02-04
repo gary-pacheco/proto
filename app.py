@@ -42,7 +42,6 @@ class PredictStats:
 
     def increment(self):
         self.counter += 1
-        print(self.counter)
 
     def count(self):
         return self.counter
