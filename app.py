@@ -15,10 +15,37 @@ print(flask.__version__)
 print(np.__version__)
 print(pd.__version__)
 
-version = '0.1.0'
+version = '0.2.0'
 app = Flask(__name__)
 boston = keras.datasets.boston_housing
 tf_gpus = 0
+up = time.time()
+
+
+class PredictStats:
+    __instance = None
+    counter = 0
+
+    @staticmethod
+    def get_instance():
+        """ Static access method. """
+        if PredictStats.__instance is None:
+            PredictStats()
+        return PredictStats.__instance
+
+    def __init__(self):
+        """ Virtually private constructor. """
+        if PredictStats.__instance is not None:
+            raise Exception("This class is a singleton!")
+        else:
+            PredictStats.__instance = self
+
+    def increment(self):
+        self.counter += 1
+        print(self.counter)
+
+    def count(self):
+        return self.counter
 
 
 def load_and_train_model():
@@ -88,7 +115,7 @@ def test_model(test_data, test_labels, model):
 
 
 # REST API
-@app.route("/predict", methods=["POST"])
+@app.route("/predict", methods=["POST"], )
 def predict():
     post_data = request.get_json()
     # print('post_data=', post_data)
@@ -112,6 +139,7 @@ def predict():
     # print('params array=', np_params) # DEBUG
 
     # resp_data = {"estimate": 0.00}
+    PredictStats.get_instance().increment()
     price_est = model.predict(np_params)
     print('THE ESTIMATE IS:', price_est) # DEBUG
     resp_data = {"estimate": format(price_est[0][0] * 1000, '.2f')}  # default response
@@ -119,7 +147,7 @@ def predict():
 
 
 @app.route("/healthcheck", methods=["GET"])
-def test_api():
+def healthcheck():
 
     print('Health check - Start') # DEBUG
     np_params = np.asarray([[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
@@ -128,6 +156,8 @@ def test_api():
     resp_data = {'status': 'OK',
                  'hostname': socket.gethostname(),
                  'timestamp': time.time(),
+                 'uptime:': time.time() - up,
+                 'predictions': PredictStats.get_instance().count(),
                  'version': version}
     return flask.jsonify(resp_data)
 
